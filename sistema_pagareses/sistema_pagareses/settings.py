@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,21 +24,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-8ilu=*!1(r^=c4mbqo=_g#kz@+wsh-ef=x1khvp$egox^686of'
-
+# SECRET_KEY = 'django-insecure-8ilu=*!1(r^=c4mbqo=_g#kz@+wsh-ef=x1khvp$egox^686of'
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
+# ALLOWED_HOSTS = ['192.168.0.100','localhost', '127.0.0.1']
 
-ALLOWED_HOSTS = [
-    '192.168.0.100',
-    'localhost', 
-    '127.0.0.1'
-]
-
-
+SECRET_KEY = os.environ.get('SECRET_KEY') # Obtiene la clave secreta de las variables de entorno
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') # Obtiene los hosts permitidos de las variables de entorno
+DEBUG = os.getenv("DEBUG", "False") == "True" # Obtiene el valor de DEBUG de las variables de entorno
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') # Obtiene los orígenes confiables para CSRF de las variables de entorno
 
 # Application definition
-
 INSTALLED_APPS = [
     'prestamos',
     'django.contrib.humanize',
@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django_prometheus.middleware.PrometheusBeforeMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 ROOT_URLCONF = 'sistema_pagareses.urls'
 
@@ -90,18 +91,19 @@ WSGI_APPLICATION = 'sistema_pagareses.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        #'ENGINE': 'django_prometheus.db.backends.mysql',
-        'NAME': 'financiera',       # Nombre de tu BD
-        'USER': 'root',             # Usuario MySQL
-        'PASSWORD': 'Almagedon666@',    # Contraseña que estableciste
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        "OPTIONS": {
-            "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+        # 'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'", # esto es para mysql
+            # 'sslmode': 'require',
+            # 'options': '-c default_transaction_read_only=off'
         }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -126,22 +128,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
 USE_TZ = True
-#USE_L10N = True
 
-# LANGUAGES = [
-#     ('en-us', 'English (US)'),
-#     ('es', 'Español'),
-# ]
+# Configuración de autenticación
+LOGIN_URL = '/'  # Usa tu vista index como login
 
-# LOCALE_PATHS = [
-#     BASE_DIR / "locale",
-# ]
+# settings.py
+# Configuración mínima para sesiones HTTP
+SESSION_COOKIE_SECURE = False  # Permitir cookies en HTTP
+CSRF_COOKIE_SECURE = False     # Permitir CSRF en HTTP
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # Desactivar política COOP
+
+
 
 
 
@@ -149,10 +152,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 # Ruta donde se recolectarán los archivos estáticos para producción
 # Static files (CSS, JavaScript, Images)
+# STATIC_URL = '/static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # For production
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'staticfiles'),  # Your app's static directory
+# ]
+
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')  # For production
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'staticfiles'),  # Your app's static directory
+    BASE_DIR / "static", # Esto apunta a la carpeta 'static' en la raíz
 ]
 
 
@@ -164,20 +173,3 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-
-
-# CSRF_COOKIE_SECURE = False  # Para HTTP
-# SESSION_COOKIE_SECURE = False  # Para HTTP
-# CSRF_TRUSTED_ORIGINS = ['http://192.168.0.100', 'http://localhost', 'http://127.0.0.1']
-
-
-
-# settings.py
-# Configuración mínima para sesiones HTTP
-SESSION_COOKIE_SECURE = False  # Permitir cookies en HTTP
-CSRF_COOKIE_SECURE = False     # Permitir CSRF en HTTP
-SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # Desactivar política COOP
-
-# Configuración de autenticación
-LOGIN_URL = '/'  # Usa tu vista index como login
