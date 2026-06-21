@@ -1,10 +1,14 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.utils import timezone
-from datetime import datetime, timedelta
+from datetime import timedelta
 from django.utils.timezone import now
 from decimal import Decimal
 from django.conf import settings
+
+
+def default_fecha_vencimiento():
+    return now().date() + timedelta(days=30)
 
 
 
@@ -79,13 +83,12 @@ class Prestamo(models.Model):
     cliente = models.ForeignKey('Cliente', on_delete=models.PROTECT)
     monto = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(1)])
     fecha_despacho = models.DateField()
-    fecha_vencimiento = models.DateField()  # Nuevo campo agregado
+    fecha_vencimiento = models.DateField(default=default_fecha_vencimiento)
     metodo_pago = models.CharField(max_length=20, choices=METODO_PAGO_CHOICES)
     departamento = models.CharField(max_length=20, choices=DEPARTAMENTO_CHOICES)
     observaciones = models.TextField(blank=True, null=True)
     numero_factura = models.CharField(max_length=50, unique=True, blank=True, null=True)
     estado = models.CharField(max_length=20, default='ACTIVO')
-    fecha_vencimiento = models.DateField(default=now() + timedelta(days=30))
     fecha_registro = models.DateTimeField(auto_now_add=True)
     telefono = models.CharField(max_length=15, blank=True, null=True)
     
